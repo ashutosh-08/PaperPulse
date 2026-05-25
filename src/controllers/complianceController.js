@@ -1,4 +1,5 @@
 const { verifyLiveGSTIN, verifyLiveFSSAI, verifyLiveMCA } = require('../services/sandboxService');
+const { verifyGSTIN } = require('../utils/mockApis');
 
 /**
  * Controller explicitly handling logic to synthesize authentic Sandbox GST details into user dashboards.
@@ -15,10 +16,16 @@ const getGSTStatus = async (req, res, next) => {
       return res.status(400).json({ message: 'Missing GSTIN field in payload.' });
     }
 
-    // Leveraging authentic Sandbox live checking
-    const data = await verifyLiveGSTIN(gstin);
+    // Attempt live sandbox check, but gracefully fallback to the internal mock verifier on failure
+    let data;
+    try {
+      data = await verifyLiveGSTIN(gstin);
+    } catch (err) {
+      console.warn(`Live GST sandbox failed, falling back to mock: ${err.message}`);
+      data = await verifyGSTIN(gstin);
+    }
 
-    res.status(200).json({ success: true, component: 'Live Sandbox GST Automation', data });
+    res.status(200).json({ success: true, component: 'GST Automation (live or mock fallback)', data });
   } catch (error) {
     next(error); // Route back to global errorMiddleware logically to catch 'Verification Failed' natively
   }
