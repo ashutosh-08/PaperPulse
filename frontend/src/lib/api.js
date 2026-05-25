@@ -4,8 +4,11 @@ import axios from 'axios';
  * Centralized Axios instance configuration.
  * Hardcoded to target the local Node.js development server on port 5000.
  */
+// Prefer Vite environment variable VITE_API_URL in production, fall back to deployed Render URL
+const API_BASE = import.meta.env.VITE_API_URL || 'https://paperpulse-1.onrender.com';
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: `${API_BASE}/api`,
 });
 
 /**
