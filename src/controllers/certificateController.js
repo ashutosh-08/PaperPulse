@@ -1,7 +1,10 @@
 const Certificate = require('../models/Certificate');
+const Retailer = require('../models/Retailer');
+const { sendPulseAlert } = require('../services/notificationService');
 
 /**
  * Persists new certificate documents (GST, FSSAI, MCA, etc.) inside the DB assigning them to the active Retailer.
+ * Automatically sends WhatsApp + Email notifications to the retailer after certificate is saved.
  * 
  * @async
  * @param {express.Request} req - Bearer of JSON payload describing certificate fields.
@@ -41,6 +44,18 @@ const createCertificate = async (req, res, next) => {
     try {
       const dbCert = new Certificate(certificateData);
       const savedCert = await dbCert.save();
+      
+      // Send notification after certificate is saved (works for any certificate type)
+      try {
+        const retailer = await Retailer.findById(req.retailerId);
+        if (retailer) {
+          await sendPulseAlert(retailer, savedCert);
+        }
+      } catch (notifErr) {
+        console.error(`[NOTIF] Failed to send notification for ${type} certificate: ${notifErr.message}`);
+        // Don't fail the request if notification fails
+      }
+      
       return res.status(201).json(savedCert);
     } catch (saveErr) {
        // 2. Memory-Pulse Failover: Persist in RAM if DB fails

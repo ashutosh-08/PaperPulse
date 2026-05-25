@@ -10,9 +10,10 @@ if (!process.env.GEMINI_API_KEY) {
 // Instantiate explicitly leveraging the most robust Gemini 1.5 Flash framework mappings available globally
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'MISSING_API_KEY');
 
+const PREFERRED_MODEL = 'gemini-2.5-flash';
+console.log(`Using Gemini model: ${PREFERRED_MODEL}`);
 const aiModel = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash',
-  model: 'gemini-1.5-flash',
+  model: PREFERRED_MODEL,
   generationConfig: {
     responseMimeType: 'application/json',
   },
