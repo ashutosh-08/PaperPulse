@@ -7,13 +7,24 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+const allowedOrigins = [
+  'http://localhost:5174',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+if (process.env.CLIENT_URL) {
+  allowedOrigins.unshift(process.env.CLIENT_URL);
+}
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.unshift(process.env.FRONTEND_URL);
+}
+
 app.use(
   cors({
-    origin: [
-      process.env.CLIENT_URL || 'http://localhost:3000',
-      'http://localhost:5174',
-      'http://localhost:5173', // Allow Vite dev server
-    ],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
